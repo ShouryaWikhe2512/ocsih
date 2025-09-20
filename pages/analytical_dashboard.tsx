@@ -387,8 +387,7 @@ export default function AnalystDashboard() {
                 />
               </div>
             ) : (
-              <div className="flex-1 p-2">
-                {/* Render the detail drawer inside this column. It will use the same width as the column */}
+              <div className="flex-1 overflow-hidden p-0">
                 <DetailDrawer
                   report={selectedReport}
                   onClose={() => setSelectedReport(null)}

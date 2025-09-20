@@ -237,7 +237,7 @@ export default function DetailDrawer({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         {/* Status & Trust */}
         <div className="flex items-center justify-between mb-4">
           <span
