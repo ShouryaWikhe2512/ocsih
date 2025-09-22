@@ -12,6 +12,7 @@
     "@clerk/nextjs": "^6.32.0",
     "@types/mapbox-gl": "^3.4.1",
     "chart.js": "^4.5.0",
+    "firebase": "^12.3.0",
     "framer-motion": "^12.23.16",
     "jspdf": "^3.0.3",
     "leaflet": "^1.9.4",

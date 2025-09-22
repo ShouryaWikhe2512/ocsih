@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { Report } from "@/lib/types";
+import { AnalyticsService } from "@/lib/analytics";
 import { X, Check, AlertTriangle, Camera, MapPin, Clock } from "lucide-react";
 
 interface DetailDrawerProps {
@@ -198,6 +200,10 @@ export default function DetailDrawer({
   onAction,
   onMediaClick,
 }: DetailDrawerProps) {
+  // Track report view when component mounts
+  useEffect(() => {
+    AnalyticsService.trackReportView(report.id, report.eventType);
+  }, [report.id, report.eventType]);
   const getTrustColor = (trust: number) => {
     if (trust >= 0.8) return "bg-green-100 text-green-800";
     if (trust >= 0.6) return "bg-yellow-100 text-yellow-800";
@@ -349,10 +355,28 @@ export default function DetailDrawer({
               {report.media.map((src, index) => (
                 <div
                   key={index}
-                  className="aspect-square bg-gray-100 rounded cursor-pointer hover:opacity-75 transition-opacity"
-                  onClick={() => onMediaClick(src)}
+                  className="aspect-square bg-gray-100 rounded cursor-pointer hover:opacity-75 transition-opacity overflow-hidden relative"
+                  onClick={() => {
+                    AnalyticsService.trackMediaInteraction(report.id, "view");
+                    onMediaClick(src);
+                  }}
                 >
-                  <div className="w-full h-full flex items-center justify-center">
+                  <img
+                    src={src}
+                    alt={`Evidence ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Fallback to camera icon if image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = "none";
+                      const fallback = target.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = "flex";
+                    }}
+                  />
+                  <div
+                    className="absolute inset-0 flex items-center justify-center bg-gray-100"
+                    style={{ display: "none" }}
+                  >
                     <Camera className="w-8 h-8 text-gray-400" />
                   </div>
                 </div>

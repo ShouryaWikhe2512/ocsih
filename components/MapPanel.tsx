@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import type { Map as LeafletMap, LayerGroup, CircleMarker } from "leaflet";
 import { Report } from "@/lib/types";
 import { calculateTrustWeightedIntensity } from "@/lib/mock-data";
+import { AnalyticsService } from "@/lib/analytics";
 
 // NOTE: we import the CSS dynamically inside useEffect to avoid SSR issues.
 
@@ -178,6 +179,12 @@ export default function MapPanel({
         marker.bindPopup(popupHtml, { offset: L.point(0, -radius) });
 
         marker.on("click", () => {
+          // Track map interaction
+          AnalyticsService.trackMapInteraction("marker_click", {
+            report_id: report.id,
+            event_type: report.eventType,
+          });
+
           onSelectReport(report);
           if (mapRef.current) {
             mapRef.current.flyTo(

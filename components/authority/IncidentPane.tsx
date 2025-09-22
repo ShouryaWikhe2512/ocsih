@@ -545,14 +545,32 @@ export default function IncidentPane({
                 {incident.media.map((src, index) => (
                   <div
                     key={index}
-                    className="aspect-square bg-gray-100 rounded-lg cursor-pointer hover:opacity-75 transition-opacity flex items-center justify-center border-2 border-dashed border-gray-300"
+                    className="aspect-square bg-gray-100 rounded-lg cursor-pointer hover:opacity-75 transition-opacity overflow-hidden relative border-2 border-dashed border-gray-300"
                     onClick={() => setShowFullMedia(src)}
                   >
-                    <div className="text-center">
-                      <Image className="w-6 h-6 text-gray-400 mx-auto mb-1" />
-                      <p className="text-xs text-gray-500">
-                        Evidence {index + 1}
-                      </p>
+                    <img
+                      src={src}
+                      alt={`Evidence ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to icon if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
+                        const fallback =
+                          target.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = "flex";
+                      }}
+                    />
+                    <div
+                      className="absolute inset-0 flex items-center justify-center bg-gray-100"
+                      style={{ display: "none" }}
+                    >
+                      <div className="text-center">
+                        <Image className="w-6 h-6 text-gray-400 mx-auto mb-1" />
+                        <p className="text-xs text-gray-500">
+                          Evidence {index + 1}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -653,20 +671,36 @@ export default function IncidentPane({
           <div className="relative max-w-4xl max-h-full p-4">
             <button
               onClick={() => setShowFullMedia(null)}
-              className="absolute top-2 right-2 text-white hover:text-gray-300 z-10"
+              className="absolute top-2 right-2 text-white hover:text-gray-300 z-10 bg-black bg-opacity-50 rounded-full p-2"
             >
               <X className="w-6 h-6" />
             </button>
 
-            <div className="bg-white rounded-lg p-8 flex items-center justify-center min-h-[400px]">
-              <div className="text-center text-gray-500">
-                <Image className="w-16 h-16 mx-auto mb-4" />
-                <p className="text-lg mb-2">Evidence Media Preview</p>
-                <p className="text-sm">{showFullMedia}</p>
-                <p className="text-xs mt-4 max-w-md">
-                  In production, this would display the actual image/video
-                  evidence. Click outside to close.
-                </p>
+            <div className="bg-white rounded-lg overflow-hidden">
+              <img
+                src={showFullMedia}
+                alt="Media evidence"
+                className="max-w-full max-h-[80vh] object-contain"
+                onError={(e) => {
+                  // Fallback for broken images
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = "block";
+                }}
+              />
+              <div
+                className="p-8 text-center text-gray-500 min-h-[400px] items-center justify-center"
+                style={{ display: "none" }}
+              >
+                <div>
+                  <Image className="w-16 h-16 mx-auto mb-4" />
+                  <p className="text-lg mb-2">Evidence Media Preview</p>
+                  <p className="text-sm">{showFullMedia}</p>
+                  <p className="text-xs mt-4 max-w-md">
+                    Unable to load image - URL may be invalid or blocked
+                  </p>
+                </div>
               </div>
             </div>
           </div>

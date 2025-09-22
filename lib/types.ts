@@ -1,12 +1,13 @@
 export interface Report {
   id: string;
-  eventType: 'high_wave' | 'unusual_tide' | 'flood';
-  text: string;
+  // Original structure fields
+  eventType?: 'high_wave' | 'unusual_tide' | 'flood';
+  text?: string;
   lat: number;
   lng: number;
   timestamp: string;
-  trust: number;
-  status: 'new' | 'in_review' | 'verified' | 'rejected';
+  trust?: number;
+  status: 'new' | 'in_review' | 'verified' | 'rejected' | 'pending';
   media: string[];
   exifData?: {
     location: string;
@@ -14,6 +15,33 @@ export interface Report {
     device: string;
   };
   validationReasons?: string[];
+  
+  // New structure fields from your Firestore data
+  reportId?: string;
+  reportTitle?: string;
+  reportType?: string;
+  description?: string;
+  location?: {
+    address: string;
+    lat: number;
+    lng: number;
+  };
+  mediaCount?: number;
+  priorityLevel?: string;
+  trustLevel?: string;
+  trustScore?: number;
+  reportMetadata?: {
+    affected_area_size?: any;
+    authority_contact?: boolean;
+    casualty_mentions?: boolean;
+    estimated_severity?: string;
+    time_indicators?: any[];
+  };
+  requiresManualReview?: boolean;
+  submissionTimestamp?: string;
+  userId?: string;
+  createdAt?: any;
+  updatedAt?: any;
 }
 
 export interface Filters {

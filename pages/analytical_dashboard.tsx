@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/router";
 import { Report, Filters, KPIData } from "@/lib/types";
-import { mockReports } from "@/lib/mock-data";
-import { useWebSocket } from "@/hooks/useWebSocket";
+import { ReportService } from "@/lib/firestore";
+import { AnalyticsService } from "@/lib/analytics";
 import MapPanel from "@/components/MapPanel";
 import FilterPanel from "@/components/FilterPanel";
 import QueueList from "@/components/QueueList";
@@ -18,10 +18,11 @@ export default function AnalystDashboard() {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
 
-  const [reports, setReports] = useState<Report[]>(mockReports);
-  const [filteredReports, setFilteredReports] = useState<Report[]>(mockReports);
+  const [reports, setReports] = useState<Report[]>([]);
+  const [filteredReports, setFilteredReports] = useState<Report[]>([]);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<Filters>({
     eventType: "all",
     minTrust: 0,
@@ -36,26 +37,34 @@ export default function AnalystDashboard() {
     }
   }, [isLoaded, isSignedIn, router]);
 
-  if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (!isSignedIn) {
-    return null; // Will redirect
-  }
-
-  // WebSocket for real-time updates
-  const handleWebSocketMessage = useCallback((message: any) => {
-    if (message.event === "new_report") {
-      setReports((prev) => [message.data, ...prev]);
+  // Track dashboard view
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      AnalyticsService.trackDashboardView("analyst");
+      if (user) {
+        AnalyticsService.setUserProperties(user.id, {
+          role: user.publicMetadata?.role || "analyst",
+        });
+      }
     }
-  }, []);
+  }, [isLoaded, isSignedIn, user]);
 
-  useWebSocket(handleWebSocketMessage);
+  // Load reports from Firestore
+  useEffect(() => {
+    if (!isSignedIn) return;
+
+    const unsubscribe = ReportService.subscribeToReports(
+      (reportsData) => {
+        setReports(reportsData);
+        setLoading(false);
+      },
+      {
+        limitCount: 100, // Limit to prevent performance issues
+      }
+    );
+
+    return () => unsubscribe();
+  }, [isSignedIn]);
 
   // Filter reports based on current filters
   useEffect(() => {
@@ -89,26 +98,44 @@ export default function AnalystDashboard() {
     action: "verify" | "reject"
   ) => {
     try {
+      const newStatus = action === "verify" ? "verified" : "rejected";
+
+      // Call the API endpoint for verification/rejection
       const response = await fetch(`/api/reports/${reportId}/${action}`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
-      if (response.ok) {
-        const newStatus = action === "verify" ? "verified" : "rejected";
-        setReports((prev) =>
-          prev.map((report) =>
-            report.id === reportId
-              ? { ...report, status: newStatus as Report["status"] }
-              : report
-          )
-        );
+      if (!response.ok) {
+        throw new Error(`Failed to ${action} report`);
+      }
 
-        // Update selected report if it's the same one
-        if (selectedReport?.id === reportId) {
-          setSelectedReport((prev) =>
-            prev ? { ...prev, status: newStatus as Report["status"] } : null
-          );
-        }
+      const result = await response.json();
+
+      // Track analytics
+      AnalyticsService.trackReportVerification(reportId, action);
+
+      // Update local state
+      setReports((prev) =>
+        prev.map((report) =>
+          report.id === reportId
+            ? { ...report, status: newStatus as Report["status"] }
+            : report
+        )
+      );
+
+      // Update selected report if it's the same one
+      if (selectedReport?.id === reportId) {
+        setSelectedReport((prev) =>
+          prev ? { ...prev, status: newStatus as Report["status"] } : null
+        );
+      }
+
+      // Show success message
+      if (action === "verify") {
+        console.log("Report verified and incident created:", result.incident);
       }
     } catch (error) {
       console.error(`Error ${action}ing report:`, error);
@@ -134,6 +161,19 @@ export default function AnalystDashboard() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedReport]);
+
+  // Conditional rendering after all hooks
+  if (!isLoaded || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    return null; // Will redirect
+  }
 
   return (
     <div className="min-h-screen relative bg-gradient-to-b from-[#d1f0eb] via-[#b6e6de] to-[#d1f0eb] overflow-auto">

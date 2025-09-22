@@ -337,6 +337,8 @@ import IncidentPane from "@/components/authority/IncidentPane";
 import KpiRibbon from "@/components/authority/KpiRibbon";
 
 import { Incident, Filters, NotificationData } from "@/lib/authority-types";
+import { IncidentService } from "@/lib/incidents-service";
+import { incidents as mockIncidents } from "@/lib/authority-data";
 
 // Dynamic import for Map to avoid SSR issues
 const MapPanel = dynamic(() => import("@/components/authority/MapPanel"), {
@@ -362,18 +364,35 @@ export default function AuthorityDashboard() {
     confidenceRange: { min: 0, max: 1 },
     verifiedOnly: true,
   });
+  const [newIncidentNotification, setNewIncidentNotification] = useState<{
+    incident: Incident;
+    timestamp: string;
+  } | null>(null);
 
-  // Fetch incidents
-  const {
-    data: incidents,
-    mutate: mutateIncidents,
-    isLoading,
-    error,
-  } = useSWR<Incident[]>("/api/authority/incidents", fetcher, {
-    refreshInterval: 30000,
-    revalidateOnFocus: false,
-    dedupingInterval: 10000,
-  });
+  // State for incidents
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  // Load incidents from Firestore with real-time updates
+  useEffect(() => {
+    setIsLoading(true);
+
+    const unsubscribe = IncidentService.subscribeToIncidents(
+      (firestoreIncidents) => {
+        // Combine Firestore incidents with mock incidents
+        const allIncidents = [...firestoreIncidents, ...mockIncidents];
+        setIncidents(allIncidents);
+        setIsLoading(false);
+        setError(null);
+      },
+      {
+        limitCount: 100, // Limit to prevent performance issues
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   // Filter incidents based on current filters
   const filteredIncidents =
@@ -417,14 +436,33 @@ export default function AuthorityDashboard() {
         notification.type === "new_incident" ||
         notification.type === "dispatch_update"
       ) {
-        mutateIncidents();
+        // Show notification to user
+        if (notification.type === "new_incident") {
+          console.log("New incident received:", notification.data.incident);
+          setNewIncidentNotification({
+            incident: notification.data.incident,
+            timestamp: notification.timestamp,
+          });
+
+          // Auto-hide notification after 5 seconds
+          setTimeout(() => {
+            setNewIncidentNotification(null);
+          }, 5000);
+        }
+
+        // Note: Real-time updates are handled by Firestore subscription
+        // No need to manually refresh data
       }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error("SSE connection error:", error);
     };
 
     return () => {
       eventSource.close();
     };
-  }, [mutateIncidents]);
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -458,9 +496,9 @@ export default function AuthorityDashboard() {
       );
 
       if (response.ok) {
-        mutateIncidents();
         const updatedIncident = await response.json();
         setSelectedIncident(updatedIncident.incident);
+        // Real-time updates are handled by Firestore subscription
       }
     } catch (error) {
       console.error(`Error performing ${action}:`, error);
@@ -580,7 +618,12 @@ export default function AuthorityDashboard() {
                     {filteredIncidents.length}
                   </span>
                   <button
-                    onClick={() => mutateIncidents()}
+                    onClick={() => {
+                      // Real-time updates are handled by Firestore subscription
+                      console.log(
+                        "Refresh requested - data updates automatically"
+                      );
+                    }}
                     className="text-sm px-3 py-1 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     Refresh
@@ -687,6 +730,61 @@ export default function AuthorityDashboard() {
           <div className="bg-blue-500 text-white px-3 py-2 rounded-lg shadow-lg flex items-center space-x-2 text-sm">
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-200 border-t-white"></div>
             <span>Updating...</span>
+          </div>
+        </motion.div>
+      )}
+
+      {/* New Incident Notification */}
+      {newIncidentNotification && (
+        <motion.div
+          className="fixed top-20 right-6 z-40"
+          initial={{ opacity: 0, x: 50, scale: 0.9 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{ opacity: 0, x: 50, scale: 0.9 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        >
+          <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg max-w-sm">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-sm">New Verified Incident</h4>
+                <p className="text-xs mt-1 opacity-90">
+                  {newIncidentNotification.incident.title}
+                </p>
+                <p className="text-xs mt-1 opacity-75">
+                  {newIncidentNotification.incident.location.district} •{" "}
+                  {newIncidentNotification.incident.severity.toUpperCase()}
+                </p>
+              </div>
+              <button
+                onClick={() => setNewIncidentNotification(null)}
+                className="flex-shrink-0 text-white hover:text-gray-200"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </motion.div>
       )}

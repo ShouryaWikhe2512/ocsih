@@ -92,6 +92,7 @@
 // }
 
 import { Filters } from "@/lib/types";
+import { AnalyticsService } from "@/lib/analytics";
 
 interface FilterPanelProps {
   filters: Filters;
@@ -103,6 +104,8 @@ export default function FilterPanel({
   onFiltersChange,
 }: FilterPanelProps) {
   const handleFilterChange = (key: keyof Filters, value: any) => {
+    // Track filter usage
+    AnalyticsService.trackFilterUsage(key, String(value));
     onFiltersChange({ ...filters, [key]: value });
   };
 
@@ -123,6 +126,7 @@ export default function FilterPanel({
           >
             <option value="all">All Types</option>
             <option value="high_wave">High Wave</option>
+            <option value="high_waves">High Waves</option>
             <option value="flood">Flood</option>
             <option value="unusual_tide">Unusual Tide</option>
           </select>
