@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/router";
 import { Report, Filters, KPIData } from "@/lib/types";
 import { mockReports } from "@/lib/mock-data";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -13,6 +15,9 @@ import MediaModal from "@/components/MediaModal";
 import TimeSeriesStackedArea from "@/components/TimeSeriesStackedArea";
 
 export default function AnalystDashboard() {
+  const { isLoaded, isSignedIn, user } = useUser();
+  const router = useRouter();
+
   const [reports, setReports] = useState<Report[]>(mockReports);
   const [filteredReports, setFilteredReports] = useState<Report[]>(mockReports);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -23,6 +28,25 @@ export default function AnalystDashboard() {
     timeWindow: 24,
     verifiedOnly: false,
   });
+
+  // Auth protection (no role enforcement)
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.replace("/sign-in");
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    return null; // Will redirect
+  }
 
   // WebSocket for real-time updates
   const handleWebSocketMessage = useCallback((message: any) => {
