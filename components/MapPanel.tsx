@@ -141,19 +141,27 @@ export default function MapPanel({
         heatPoints.push([lat, lng, Math.max(0.1, intensity)]);
         latLngPairs.push([lat, lng]);
 
-        // marker color based on event type
+        // marker color based on event type (you can change this to status-based if preferred)
         const fillColor = getEventTypeColor(report.eventType);
 
-        // scale radius with intensity
-        const radius = 6 + intensity * 16;
+        // Alternative: Status-based colors (uncomment to use instead)
+        // const fillColor = getStatusColor(report.status);
+
+        // Debug logging to help identify event types
+        console.log(
+          `Report ${report.id}: eventType="${report.eventType}", status="${report.status}", color="${fillColor}"`
+        );
+
+        // scale radius with intensity (make markers more visible)
+        const radius = 8 + intensity * 20;
 
         const marker = L.circleMarker([lat, lng], {
           radius,
           fillColor,
           color: "#ffffff",
-          weight: 1,
+          weight: 2,
           opacity: 1,
-          fillOpacity: 0.75,
+          fillOpacity: 0.8,
         }) as CircleMarker;
 
         // popup content
@@ -289,7 +297,7 @@ export default function MapPanel({
     })();
   }, [reports, selectedReport, onSelectReport]);
 
-  // helper: event type color (keeps your previous palette)
+  // helper: event type color with comprehensive mapping
   const getEventTypeColor = (eventType: string) => {
     switch (eventType) {
       case "high_wave":
@@ -298,6 +306,48 @@ export default function MapPanel({
         return "#ef4444"; // red
       case "unusual_tide":
         return "#10b981"; // green
+      case "tsunami":
+        return "#dc2626"; // dark red
+      case "storm_surge":
+        return "#7c3aed"; // purple
+      case "coastal_erosion":
+        return "#f59e0b"; // amber
+      case "cyclone":
+        return "#8b5cf6"; // violet
+      case "earthquake":
+        return "#ef4444"; // red
+      case "landslide":
+        return "#92400e"; // brown
+      case "drought":
+        return "#f97316"; // orange
+      case "fire":
+        return "#dc2626"; // red
+      case "storm":
+        return "#0ea5e9"; // sky blue
+      case "heavy_rain":
+        return "#0d9488"; // teal
+      case "heatwave":
+        return "#f59e0b"; // amber
+      case "cold_wave":
+        return "#3b82f6"; // blue
+      default:
+        return "#ef4444"; // red
+    }
+  };
+
+  // helper: status-based color mapping (alternative option)
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "new":
+        return "#3b82f6"; // blue
+      case "in_review":
+        return "#f59e0b"; // amber
+      case "verified":
+        return "#10b981"; // green
+      case "rejected":
+        return "#ef4444"; // red
+      case "pending":
+        return "#6b7280"; // gray
       default:
         return "#6b7280"; // gray
     }
@@ -308,7 +358,7 @@ export default function MapPanel({
       <div ref={mapContainer} className="w-full h-full" />
 
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-white p-3 rounded-lg shadow-lg z-30">
+      <div className="absolute bottom-4 left-4 bg-white p-3 rounded-lg shadow-lg z-30 max-h-64 overflow-y-auto">
         <h4 className="font-semibold text-sm mb-2">Event Types</h4>
         <div className="space-y-1 text-xs">
           <div className="flex items-center">
@@ -322,6 +372,34 @@ export default function MapPanel({
           <div className="flex items-center">
             <span className="inline-block w-3 h-3 rounded-full bg-green-500 mr-2" />
             Unusual Tide
+          </div>
+          <div className="flex items-center">
+            <span className="inline-block w-3 h-3 rounded-full bg-purple-600 mr-2" />
+            Storm Surge
+          </div>
+          <div className="flex items-center">
+            <span className="inline-block w-3 h-3 rounded-full bg-amber-500 mr-2" />
+            Coastal Erosion
+          </div>
+          <div className="flex items-center">
+            <span className="inline-block w-3 h-3 rounded-full bg-violet-600 mr-2" />
+            Cyclone
+          </div>
+          <div className="flex items-center">
+            <span className="inline-block w-3 h-3 rounded-full bg-orange-500 mr-2" />
+            Drought
+          </div>
+          <div className="flex items-center">
+            <span className="inline-block w-3 h-3 rounded-full bg-sky-500 mr-2" />
+            Storm
+          </div>
+          <div className="flex items-center">
+            <span className="inline-block w-3 h-3 rounded-full bg-teal-600 mr-2" />
+            Heavy Rain
+          </div>
+          <div className="flex items-center">
+            <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-2" />
+            Other/Unknown
           </div>
         </div>
       </div>

@@ -634,7 +634,7 @@ export default function AuthorityDashboard() {
 
             {/* Body */}
             {!selectedIncident ? (
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 overflow-y-auto">
                 <IncidentList
                   incidents={filteredIncidents}
                   selectedIncident={selectedIncident}
