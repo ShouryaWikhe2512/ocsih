@@ -1,7 +1,7 @@
 export interface Incident {
   id: string;
   title: string;
-  eventType: 'high_wave' | 'unusual_tide' | 'flood' | 'cyclone';
+  eventType: 'theft' | 'assault' | 'burglary' | 'fraud' | 'vandalism' | 'robbery' | 'domestic_violence' | 'cyber_crime' | 'murder' | 'kidnapping';
   location: {
     lat: number;
     lng: number;
@@ -9,7 +9,7 @@ export interface Incident {
     state: string;
     address: string;
   };
-  severity: 'low' | 'moderate' | 'high' | 'extreme';
+  severity: 'low' | 'moderate' | 'high' | 'critical';
   confidence: number; // 0-1
   status: 'open' | 'acknowledged' | 'dispatched' | 'published' | 'closed';
   timestamp: string;
@@ -38,7 +38,7 @@ export interface Contact {
 export interface Resource {
   id: string;
   name: string;
-  type: 'shelter' | 'hospital' | 'fire_station' | 'police' | 'coast_guard';
+  type: 'police_station' | 'hospital' | 'fire_station' | 'court' | 'forensic_lab' | 'cyber_crime_unit' | 'special_ops';
   lat: number;
   lng: number;
   capacity?: number;

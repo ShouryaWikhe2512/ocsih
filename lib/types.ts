@@ -1,7 +1,7 @@
 export interface Report {
   id: string;
-  // Original structure fields
-  eventType?: 'high_wave' | 'unusual_tide' | 'flood';
+  // Crime analysis structure fields
+  eventType?: 'theft' | 'assault' | 'burglary' | 'fraud' | 'vandalism' | 'robbery' | 'domestic_violence' | 'cyber_crime';
   text?: string;
   lat: number;
   lng: number;

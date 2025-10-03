@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Bell, User, Wifi, WifiOff } from "lucide-react";
+import {
+  Search,
+  Bell,
+  User,
+  Wifi,
+  WifiOff,
+  Shield,
+  AlertTriangle,
+} from "lucide-react";
 
 export default function Header() {
   const [isOnline, setIsOnline] = useState(true);
@@ -37,20 +45,20 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4">
+    <header className="bg-white border-b-2 border-blue-800 px-6 py-4 shadow-lg">
       <div className="flex items-center justify-between">
-        {/* Left - Agency Info */}
+        {/* Left - Police Department Info */}
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <span className="text-green-800 font-bold text-lg">🏛️</span>
+            <div className="w-12 h-12 police-gradient rounded-lg flex items-center justify-center shadow-lg">
+              <Shield className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
-                Government of India
+              <h1 className="text-xl font-bold text-blue-900">
+                Rakshaq Citizen Safety
               </h1>
-              <p className="text-sm text-gray-600">
-                Ministry of Earth Sciences - Authority Dashboard
+              <p className="text-sm text-gray-700 font-medium">
+                Indian Police Crime Analysis Dashboard
               </p>
             </div>
           </div>
@@ -62,8 +70,8 @@ export default function Header() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Search incidents, locations..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Search crimes, locations, suspects..."
+              className="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-all duration-200"
             />
           </div>
         </div>
@@ -73,19 +81,39 @@ export default function Header() {
           {/* System Status */}
           <div className="flex items-center space-x-2 text-sm">
             {isOnline ? (
-              <Wifi className="w-4 h-4 text-green-500" />
+              <Wifi className="w-4 h-4 text-green-600" />
             ) : (
-              <WifiOff className="w-4 h-4 text-red-500" />
+              <WifiOff className="w-4 h-4 text-red-600" />
             )}
-            <span className={isOnline ? "text-green-600" : "text-red-600"}>
+            <span
+              className={
+                isOnline
+                  ? "text-green-700 font-medium"
+                  : "text-red-700 font-medium"
+              }
+            >
               {isOnline ? "Online" : "Offline"}
             </span>
           </div>
 
           {/* Last Sync - only render on client */}
           {mounted && (
-            <div className="text-sm text-gray-600">Last sync: {lastSync}</div>
+            <div className="text-sm text-gray-600 font-medium">
+              Last sync: {lastSync}
+            </div>
           )}
+
+          {/* Emergency Alert */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative p-2 text-red-600 hover:text-red-700 transition-colors"
+          >
+            <AlertTriangle className="w-5 h-5" />
+            <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+              3
+            </span>
+          </motion.button>
 
           {/* Notifications */}
           <motion.button
@@ -94,19 +122,23 @@ export default function Header() {
             className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors"
           >
             <Bell className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-              2
+            <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+              5
             </span>
           </motion.button>
 
           {/* User Menu */}
           <div className="flex items-center space-x-3">
             <div className="text-right text-sm">
-              <div className="font-medium text-gray-900">Officer Name</div>
-              <div className="text-gray-600">District Authority</div>
+              <div className="font-semibold text-gray-900">
+                Inspector Rajesh Kumar
+              </div>
+              <div className="text-gray-600 font-medium">
+                Crime Analysis Unit
+              </div>
             </div>
-            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-gray-600" />
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center border-2 border-blue-200">
+              <User className="w-5 h-5 text-blue-700" />
             </div>
           </div>
         </div>

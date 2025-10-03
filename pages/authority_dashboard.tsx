@@ -506,7 +506,7 @@ export default function AuthorityDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-gray-50 to-blue-50">
       <Header />
 
       {/* KPI Ribbon */}
@@ -514,7 +514,7 @@ export default function AuthorityDashboard() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="shadow-sm relative z-10"
+        className="shadow-lg relative z-10"
       >
         <KpiRibbon incidents={filteredIncidents} />
       </motion.div>
@@ -527,33 +527,33 @@ export default function AuthorityDashboard() {
         >
           {/* Left Panel - Filters */}
           <motion.div
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col"
+            className="bg-white rounded-lg shadow-lg border-2 border-blue-100 p-4 flex flex-col"
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             style={{ height: "72vh" }}
           >
-            <h3 className="text-sm font-semibold text-gray-800 mb-4">
-              Filters
+            <h3 className="text-sm font-bold text-blue-900 mb-4">
+              Crime Filters
             </h3>
             <FiltersList filters={filters} onFiltersChange={setFilters} />
           </motion.div>
 
           {/* Center Panel - Map */}
           <motion.div
-            className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col"
+            className="bg-white rounded-lg shadow-lg border-2 border-blue-100 overflow-hidden flex flex-col"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             style={{ height: "70vh" }}
           >
             {/* Map header */}
-            <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100 bg-gray-50">
+            <div className="flex items-center justify-between px-6 py-3 border-b-2 border-blue-100 bg-blue-50">
               <div>
-                <h3 className="text-sm font-semibold text-gray-800">
-                  Interactive Map
+                <h3 className="text-sm font-bold text-blue-900">
+                  Crime Incident Map
                 </h3>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-600 font-medium">
                   {filteredIncidents.length} incidents displayed
                 </p>
               </div>
@@ -564,12 +564,12 @@ export default function AuthorityDashboard() {
                     const evt = new CustomEvent("center-on-incidents");
                     window.dispatchEvent(evt);
                   }}
-                  className="text-sm px-3 py-1 rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                  className="text-sm px-3 py-1 rounded-md bg-blue-800 text-white hover:bg-blue-900 transition-all duration-200 font-medium"
                 >
                   Center View
                 </button>
 
-                <button className="text-sm px-3 py-1 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+                <button className="text-sm px-3 py-1 rounded-md border-2 border-blue-200 text-blue-700 hover:bg-blue-50 transition-all duration-200 font-medium">
                   Layers
                 </button>
               </div>
@@ -587,19 +587,19 @@ export default function AuthorityDashboard() {
 
           {/* Right Panel - Incident List/Details */}
           <motion.div
-            className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col"
+            className="bg-white rounded-lg shadow-lg border-2 border-blue-100 overflow-hidden flex flex-col"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
             style={{ height: "70vh" }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
+            <div className="flex items-center justify-between px-4 py-3 border-b-2 border-blue-100 bg-blue-50">
               <div className="flex items-center gap-3">
                 {selectedIncident ? (
                   <button
                     onClick={() => setSelectedIncident(null)}
-                    className="text-sm px-2 py-1 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="text-sm px-2 py-1 rounded-md border-2 border-blue-200 text-blue-700 hover:bg-blue-50 transition-all duration-200 font-medium"
                   >
                     ← Back
                   </button>
@@ -607,14 +607,14 @@ export default function AuthorityDashboard() {
                   <div className="w-12" />
                 )}
 
-                <h3 className="text-sm font-semibold text-gray-800">
-                  {selectedIncident ? "Incident Details" : "Incident Queue"}
+                <h3 className="text-sm font-bold text-blue-900">
+                  {selectedIncident ? "Crime Details" : "Crime Queue"}
                 </h3>
               </div>
 
               {!selectedIncident && (
                 <div className="flex items-center gap-2">
-                  <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                  <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded-full">
                     {filteredIncidents.length}
                   </span>
                   <button
@@ -624,7 +624,7 @@ export default function AuthorityDashboard() {
                         "Refresh requested - data updates automatically"
                       );
                     }}
-                    className="text-sm px-3 py-1 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="text-sm px-3 py-1 rounded-md border-2 border-blue-200 text-blue-700 hover:bg-blue-50 transition-all duration-200 font-medium"
                   >
                     Refresh
                   </button>

@@ -176,28 +176,33 @@ export default function AnalystDashboard() {
   }
 
   return (
-    <div className="min-h-screen relative bg-gradient-to-b from-[#d1f0eb] via-[#b6e6de] to-[#d1f0eb] overflow-auto">
-      {/* Decorative background blobs */}
+    <div className="min-h-screen relative bg-gradient-to-b from-blue-50 via-gray-50 to-blue-50 overflow-auto">
+      {/* Decorative background elements */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-24 -left-24 w-96 h-96 rounded-full bg-[#4FB7B3]/10 blur-3xl transform -rotate-12"
+        className="pointer-events-none absolute -top-24 -left-24 w-96 h-96 rounded-full bg-blue-600/5 blur-3xl transform -rotate-12"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute top-10 right-0 w-72 h-72 rounded-full bg-[#4FB7B3]/6 blur-2xl"
+        className="pointer-events-none absolute top-10 right-0 w-72 h-72 rounded-full bg-blue-800/5 blur-2xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute bottom-10 left-1/3 w-64 h-64 rounded-full bg-red-500/5 blur-2xl"
       />
 
       {/* Page wrapper — small left/right margins per request */}
       <div className="mx-5 my-8 flex flex-col gap-6">
         {/* Header */}
-        <header className="bg-white/70 backdrop-blur-sm rounded-2xl px-6 py-6 shadow-sm border border-gray-100">
+        <header className="bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-6 shadow-lg border-2 border-blue-200">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-semibold text-[#0f1724] tracking-tight">
-                Ocean Hazard Analysis
+              <h1 className="text-3xl font-bold text-blue-900 tracking-tight">
+                Crime Analysis Dashboard
               </h1>
-              <p className="mt-1 text-sm text-gray-600">
-                Monitor, validate and act on incoming ocean hazard reports.
+              <p className="mt-1 text-sm text-gray-700 font-medium">
+                Monitor, analyze and investigate crime reports for citizen
+                safety.
               </p>
             </div>
             <KpiCards data={kpiData} />
@@ -212,7 +217,7 @@ export default function AnalystDashboard() {
         >
           {/* Filter (left) — shorter height */}
           <div
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4"
+            className="bg-white rounded-2xl shadow-lg border-2 border-blue-100 p-4"
             style={{ height: "46vh" }}
           >
             <FilterPanel filters={filters} onFiltersChange={setFilters} />
@@ -220,15 +225,15 @@ export default function AnalystDashboard() {
 
           {/* Map (center) — main area, taller */}
           <div
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col"
+            className="bg-white rounded-2xl shadow-lg border-2 border-blue-100 overflow-hidden flex flex-col"
             style={{ height: "70vh" }}
           >
             {/* Map header */}
-            <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100">
+            <div className="flex items-center justify-between px-6 py-3 border-b-2 border-blue-100 bg-blue-50">
               <div>
-                <h3 className="text-sm font-semibold text-gray-800">Map</h3>
-                <p className="text-xs text-gray-500">
-                  Interactive report locations
+                <h3 className="text-sm font-bold text-blue-900">Crime Map</h3>
+                <p className="text-xs text-gray-600 font-medium">
+                  Interactive crime report locations
                 </p>
               </div>
 
@@ -240,12 +245,12 @@ export default function AnalystDashboard() {
                     const evt = new CustomEvent("center-on-reports");
                     window.dispatchEvent(evt);
                   }}
-                  className="text-sm px-3 py-1 rounded-md bg-[#4FB7B3] text-white hover:bg-[#429e99] transition"
+                  className="text-sm px-3 py-1 rounded-md bg-blue-800 text-white hover:bg-blue-900 transition-all duration-200 font-medium"
                 >
-                  Center on reports
+                  Center on Crimes
                 </button>
 
-                <button className="text-sm px-3 py-1 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition">
+                <button className="text-sm px-3 py-1 rounded-md border-2 border-blue-200 text-blue-700 hover:bg-blue-50 transition-all duration-200 font-medium">
                   Layers
                 </button>
 
@@ -267,19 +272,19 @@ export default function AnalystDashboard() {
             </div>
           </div>
 
-          {/* Right column: Verification Queue & Detail Drawer (same column) */}
+          {/* Right column: Investigation Queue & Detail Drawer (same column) */}
           <div
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col"
+            className="bg-white rounded-2xl shadow-lg border-2 border-blue-100 overflow-hidden flex flex-col"
             style={{ height: "70vh" }}
           >
             {/* Top toolbar in right column: Back button + title */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+            <div className="flex items-center justify-between px-4 py-3 border-b-2 border-blue-100 bg-blue-50">
               <div className="flex items-center gap-3">
                 {/* Show back button only when viewing details */}
                 {selectedReport ? (
                   <button
                     onClick={() => setSelectedReport(null)}
-                    className="text-sm px-2 py-1 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition"
+                    className="text-sm px-2 py-1 rounded-md border-2 border-blue-200 text-blue-700 hover:bg-blue-50 transition-all duration-200 font-medium"
                   >
                     ← Back
                   </button>
@@ -288,8 +293,10 @@ export default function AnalystDashboard() {
                   <div className="w-12" />
                 )}
 
-                <h3 className="text-sm font-semibold text-gray-800">
-                  {selectedReport ? "Report Details" : "Verification Queue"}
+                <h3 className="text-sm font-bold text-blue-900">
+                  {selectedReport
+                    ? "Crime Report Details"
+                    : "Investigation Queue"}
                 </h3>
               </div>
 
@@ -300,7 +307,7 @@ export default function AnalystDashboard() {
                     onClick={() =>
                       window.dispatchEvent(new CustomEvent("scroll-queue-top"))
                     }
-                    className="text-sm px-3 py-1 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition"
+                    className="text-sm px-3 py-1 rounded-md border-2 border-blue-200 text-blue-700 hover:bg-blue-50 transition-all duration-200 font-medium"
                   >
                     Refresh
                   </button>
@@ -335,15 +342,15 @@ export default function AnalystDashboard() {
           </div>
         </div>
 
-        {/* Bottom row — full width Disaster Trends chart */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        {/* Bottom row — full width Crime Trends chart */}
+        <div className="bg-white rounded-2xl shadow-lg border-2 border-blue-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-semibold text-gray-800">
-                Disaster Trends
+              <h2 className="text-lg font-bold text-blue-900">
+                Crime Trends Analysis
               </h2>
-              <p className="text-sm text-gray-500">
-                Stacked counts by event type with average trust overlay
+              <p className="text-sm text-gray-600 font-medium">
+                Crime patterns by type with investigation progress overlay
               </p>
             </div>
 
@@ -351,7 +358,7 @@ export default function AnalystDashboard() {
               {["24h", "7d", "30d"].map((range) => (
                 <button
                   key={range}
-                  className="px-3 py-1 text-sm rounded-md border border-gray-200 hover:bg-gray-50 transition"
+                  className="px-3 py-1 text-sm rounded-md border-2 border-blue-200 hover:bg-blue-50 transition-all duration-200 font-medium text-blue-700"
                 >
                   {range}
                 </button>

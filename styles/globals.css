@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Indian Police Crime Analysis Dashboard - Rakshaq Citizen Safety Theme */
+:root {
+  --police-navy: #1e3a8a;
+  --police-gold: #f59e0b;
+  --police-red: #dc2626;
+  --police-gray: #374151;
+  --police-light-gray: #f3f4f6;
+  --police-dark-blue: #1e40af;
+  --police-light-blue: #dbeafe;
+  --police-green: #059669;
+  --police-orange: #ea580c;
+}
+
 .mapboxgl-popup {
   max-width: 300px;
 }
@@ -9,4 +22,39 @@
 .mapboxgl-popup-content {
   padding: 15px;
   border-radius: 8px;
+}
+
+/* Police-themed gradients */
+.police-gradient {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
+}
+
+.police-card-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+/* Police badge styling */
+.police-badge {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  color: white;
+  border: 2px solid #f59e0b;
+}
+
+/* Crime severity indicators */
+.severity-critical { @apply bg-red-600 text-white; }
+.severity-high { @apply bg-orange-500 text-white; }
+.severity-medium { @apply bg-yellow-500 text-black; }
+.severity-low { @apply bg-green-500 text-white; }
+
+/* Police-themed buttons */
+.btn-police-primary {
+  @apply bg-blue-800 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl;
+}
+
+.btn-police-secondary {
+  @apply bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg border border-gray-300 transition-all duration-200;
+}
+
+.btn-police-danger {
+  @apply bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl;
 }

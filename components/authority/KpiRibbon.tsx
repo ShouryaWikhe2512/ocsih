@@ -1,5 +1,12 @@
 import { motion } from "framer-motion";
-import { FileText, CheckCircle, Clock, TrendingUp } from "lucide-react";
+import {
+  FileText,
+  CheckCircle,
+  Clock,
+  TrendingUp,
+  Shield,
+  AlertTriangle,
+} from "lucide-react";
 import { Incident } from "@/lib/authority-types";
 
 interface KpiRibbonProps {
@@ -42,41 +49,45 @@ export default function KpiRibbon({ incidents }: KpiRibbonProps) {
 
   const kpiCards = [
     {
-      title: "Open Incidents",
+      title: "Active Crimes",
       value: openIncidents,
-      icon: FileText,
-      color: "text-red-600",
-      bgColor: "bg-red-50",
+      icon: AlertTriangle,
+      color: "text-red-700",
+      bgColor: "bg-red-100",
+      borderColor: "border-red-200",
       trend: "+2 from yesterday",
     },
     {
       title: "New Today",
       value: newToday,
       icon: TrendingUp,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
+      color: "text-blue-700",
+      bgColor: "bg-blue-100",
+      borderColor: "border-blue-200",
       trend: "Last 24 hours",
     },
     {
-      title: "Avg Confidence",
+      title: "Investigation Quality",
       value: `${Math.round(avgConfidence * 100)}%`,
       icon: CheckCircle,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
+      color: "text-green-700",
+      bgColor: "bg-green-100",
+      borderColor: "border-green-200",
       trend: "+5% from last week",
     },
     {
-      title: "Median Response",
+      title: "Response Time",
       value: `${medianAcknowledgeTime}m`,
       icon: Clock,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-50",
+      color: "text-yellow-700",
+      bgColor: "bg-yellow-100",
+      borderColor: "border-yellow-200",
       trend: "Time to acknowledge",
     },
   ];
 
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4">
+    <div className="bg-white border-b-2 border-blue-200 px-6 py-4 shadow-lg">
       <div className="grid grid-cols-4 gap-6">
         {kpiCards.map((card, index) => {
           const Icon = card.icon;
@@ -86,17 +97,19 @@ export default function KpiRibbon({ incidents }: KpiRibbonProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`${card.bgColor} p-4 rounded-lg`}
+              className={`${card.bgColor} ${card.borderColor} border-2 p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-200`}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-semibold text-gray-700">
                     {card.title}
                   </p>
                   <p className={`text-2xl font-bold ${card.color}`}>
                     {card.value}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">{card.trend}</p>
+                  <p className="text-xs text-gray-600 mt-1 font-medium">
+                    {card.trend}
+                  </p>
                 </div>
                 <Icon className={`w-8 h-8 ${card.color} opacity-80`} />
               </div>
