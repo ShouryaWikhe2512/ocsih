@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String              @id @default(cuid())
+  email         String              @unique
+  name          String?
+  role          UserRole            @default(USER)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  crimeReports  CrimeReport[]
+  verifications HumanVerification[]
+
+  @@map("users")
+}
+
+model CrimeReport {
+  id                String             @id @default(cuid())
+  userId            String
+  timestamp         DateTime           @default(now())
+  location          String
+  description       String
+  mediaUrls         String
+  mediaType         MediaType
+  status            ReportStatus       @default(PENDING)
+  priority          Priority           @default(MEDIUM)
+  category          CrimeCategory
+  latitude          Float?
+  longitude         Float?
+  walletAddress     String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  aiAnalysis        AIAnalysis?
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  humanVerification HumanVerification?
+  solanaReward      SolanaReward?
+  escalation        Escalation?
+
+  @@map("crime_reports")
+}
+
+model AIAnalysis {
+  id              String      @id @default(cuid())
+  crimeReportId   String      @unique
+  confidence      Int
+  crimeType       String
+  severity        Severity
+  description     String
+  riskFactors     String
+  recommendations String
+  people          String
+  vehicles        String
+  weapons         String
+  locations       String
+  objects         String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  crimeReport     CrimeReport @relation(fields: [crimeReportId], references: [id], onDelete: Cascade)
+
+  @@map("ai_analyses")
+}
+
+model HumanVerification {
+  id               String      @id @default(cuid())
+  crimeReportId    String      @unique
+  verifiedBy       String
+  verifiedAt       DateTime    @default(now())
+  isVerified       Boolean
+  notes            String
+  confidence       Int
+  requiresFollowUp Boolean     @default(false)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  crimeReport      CrimeReport @relation(fields: [crimeReportId], references: [id], onDelete: Cascade)
+  admin            User        @relation(fields: [verifiedBy], references: [id])
+
+  @@map("human_verifications")
+}
+
+model SolanaReward {
+  id               String       @id @default(cuid())
+  crimeReportId    String       @unique
+  recipientAddress String
+  amount           Float
+  transactionId    String?
+  status           RewardStatus @default(PENDING)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  crimeReport      CrimeReport  @relation(fields: [crimeReportId], references: [id], onDelete: Cascade)
+
+  @@map("solana_rewards")
+}
+
+model Escalation {
+  id               String      @id @default(cuid())
+  crimeReportId    String      @unique
+  escalatedTo      String      // Department name
+  escalatedBy       String      // Who escalated it
+  escalatedAt      DateTime    @default(now())
+  escalationNotes  String?     // Additional notes for escalation
+  status           EscalationStatus @default(PENDING)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  crimeReport      CrimeReport @relation(fields: [crimeReportId], references: [id], onDelete: Cascade)
+
+  @@map("escalations")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum CrimeCategory {
+  SEXUAL_VIOLENCE
+  DOMESTIC_VIOLENCE
+  STREET_CRIMES
+  MOB_VIOLENCE_LYNCHING
+  ROAD_RAGE_INCIDENTS
+  CYBERCRIMES
+  DRUG
+}
+
+enum MediaType {
+  PHOTO
+  VIDEO
+}
+
+enum ReportStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RewardStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum EscalationStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+}

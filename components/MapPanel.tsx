@@ -356,53 +356,6 @@ export default function MapPanel({
   return (
     <div className="relative h-full">
       <div ref={mapContainer} className="w-full h-full" />
-
-      {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-white p-3 rounded-lg shadow-lg z-30 max-h-64 overflow-y-auto">
-        <h4 className="font-semibold text-sm mb-2">Event Types</h4>
-        <div className="space-y-1 text-xs">
-          <div className="flex items-center">
-            <span className="inline-block w-3 h-3 rounded-full bg-blue-500 mr-2" />
-            High Wave
-          </div>
-          <div className="flex items-center">
-            <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-2" />
-            Flood
-          </div>
-          <div className="flex items-center">
-            <span className="inline-block w-3 h-3 rounded-full bg-green-500 mr-2" />
-            Unusual Tide
-          </div>
-          <div className="flex items-center">
-            <span className="inline-block w-3 h-3 rounded-full bg-purple-600 mr-2" />
-            Storm Surge
-          </div>
-          <div className="flex items-center">
-            <span className="inline-block w-3 h-3 rounded-full bg-amber-500 mr-2" />
-            Coastal Erosion
-          </div>
-          <div className="flex items-center">
-            <span className="inline-block w-3 h-3 rounded-full bg-violet-600 mr-2" />
-            Cyclone
-          </div>
-          <div className="flex items-center">
-            <span className="inline-block w-3 h-3 rounded-full bg-orange-500 mr-2" />
-            Drought
-          </div>
-          <div className="flex items-center">
-            <span className="inline-block w-3 h-3 rounded-full bg-sky-500 mr-2" />
-            Storm
-          </div>
-          <div className="flex items-center">
-            <span className="inline-block w-3 h-3 rounded-full bg-teal-600 mr-2" />
-            Heavy Rain
-          </div>
-          <div className="flex items-center">
-            <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-2" />
-            Other/Unknown
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

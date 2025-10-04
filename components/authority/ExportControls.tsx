@@ -1,13 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Download, FileText, Map, FileSpreadsheet, Share } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { Incident } from "@/lib/authority-types";
-import {
-  generatePDF,
-  generateCAP,
-  generateGeoJSON,
-  generateCSV,
-} from "@/lib/export-utils";
+import { generatePDF } from "@/lib/export-utils";
 
 interface ExportControlsProps {
   incident: Incident;
@@ -20,19 +15,8 @@ export default function ExportControls({ incident }: ExportControlsProps) {
     setIsExporting(type);
 
     try {
-      switch (type) {
-        case "pdf":
-          generatePDF(incident);
-          break;
-        case "cap":
-          generateCAP(incident);
-          break;
-        case "geojson":
-          generateGeoJSON([incident]);
-          break;
-        case "csv":
-          generateCSV([incident]);
-          break;
+      if (type === "pdf") {
+        generatePDF(incident);
       }
     } catch (error) {
       console.error(`Error exporting ${type}:`, error);
@@ -46,29 +30,8 @@ export default function ExportControls({ incident }: ExportControlsProps) {
       type: "pdf",
       label: "PDF Report",
       icon: FileText,
-      description: "Complete incident report",
+      description: "Official incident report",
       color: "text-red-600",
-    },
-    {
-      type: "cap",
-      label: "CAP XML",
-      icon: Share,
-      description: "Common Alerting Protocol",
-      color: "text-blue-600",
-    },
-    {
-      type: "geojson",
-      label: "GeoJSON",
-      icon: Map,
-      description: "Geographic data format",
-      color: "text-green-600",
-    },
-    {
-      type: "csv",
-      label: "CSV Data",
-      icon: FileSpreadsheet,
-      description: "Spreadsheet format",
-      color: "text-purple-600",
     },
   ];
 

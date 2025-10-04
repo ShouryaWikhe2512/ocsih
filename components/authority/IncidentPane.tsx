@@ -12,8 +12,6 @@ import {
   CheckCircle,
   AlertTriangle,
   Truck,
-  Megaphone,
-  ArrowUp,
   XCircle,
 } from "lucide-react";
 import { Incident } from "@/lib/authority-types";
@@ -23,7 +21,6 @@ import {
   maskPII,
   getStatusColor,
 } from "../../lib/utils";
-import SopCard from "./SopCard";
 import ExportControls from "../authority/ExportControls";
 
 interface IncidentPaneProps {
@@ -60,10 +57,8 @@ function ActionModal({ isOpen, action, onClose, onConfirm }: ActionModalProps) {
         };
       case "dispatch":
         return { title: "Dispatch Teams", icon: Truck, color: "blue" };
-      case "publish":
-        return { title: "Publish Advisory", icon: Megaphone, color: "purple" };
-      case "escalate":
-        return { title: "Escalate Incident", icon: ArrowUp, color: "orange" };
+      case "resolved":
+        return { title: "Mark as Resolved", icon: CheckCircle, color: "green" };
       case "close":
         return { title: "Close Incident", icon: XCircle, color: "gray" };
       default:
@@ -121,118 +116,6 @@ function ActionModal({ isOpen, action, onClose, onConfirm }: ActionModalProps) {
           </div>
         )}
 
-        {action === "publish" && (
-          <div className="space-y-3 mb-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Publication Channel
-              </label>
-              <select
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-accent-500"
-                onChange={(e) =>
-                  setPayload({ ...payload, channel: e.target.value })
-                }
-              >
-                <option value="">Select Channel</option>
-                <option value="sms">SMS Alert System</option>
-                <option value="social">Social Media Platforms</option>
-                <option value="radio">Radio Broadcast</option>
-                <option value="tv">Television Alert</option>
-                <option value="all">All Available Channels</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Template</label>
-              <select
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-accent-500"
-                onChange={(e) =>
-                  setPayload({ ...payload, templateId: e.target.value })
-                }
-              >
-                <option value="">Select Template</option>
-                <option value="WAVE_ALERT">High Wave Alert</option>
-                <option value="FLOOD_WARNING">Flood Warning</option>
-                <option value="EVACUATION">Evacuation Notice</option>
-                <option value="ALL_CLEAR">All Clear Notice</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Languages
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  "English",
-                  "Hindi",
-                  "Tamil",
-                  "Telugu",
-                  "Malayalam",
-                  "Bengali",
-                ].map((lang) => (
-                  <label key={lang} className="flex items-center text-sm">
-                    <input
-                      type="checkbox"
-                      className="mr-1"
-                      defaultChecked={lang === "English" || lang === "Hindi"}
-                      onChange={(e) => {
-                        const languages = payload.languages || [
-                          "English",
-                          "Hindi",
-                        ];
-                        if (e.target.checked) {
-                          if (!languages.includes(lang)) languages.push(lang);
-                        } else {
-                          const index = languages.indexOf(lang);
-                          if (index > -1) languages.splice(index, 1);
-                        }
-                        setPayload({ ...payload, languages });
-                      }}
-                    />
-                    {lang}
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {action === "escalate" && (
-          <div className="space-y-3 mb-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Escalate To
-              </label>
-              <select
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-accent-500"
-                onChange={(e) =>
-                  setPayload({ ...payload, escalateTo: e.target.value })
-                }
-              >
-                <option value="">Select Authority</option>
-                <option value="STATE_DISASTER">
-                  State Disaster Management
-                </option>
-                <option value="NDRF">National Disaster Response Force</option>
-                <option value="COAST_GUARD">Indian Coast Guard</option>
-                <option value="NAVY">Indian Navy</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Reason for Escalation
-              </label>
-              <textarea
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-accent-500"
-                rows={3}
-                placeholder="Explain why this incident needs escalation..."
-                onChange={(e) =>
-                  setPayload({ ...payload, reason: e.target.value })
-                }
-              />
-            </div>
-          </div>
-        )}
-
         {action === "close" && (
           <div className="space-y-3 mb-4">
             <div>
@@ -262,6 +145,55 @@ function ActionModal({ isOpen, action, onClose, onConfirm }: ActionModalProps) {
                 placeholder="Final remarks and outcome summary..."
                 onChange={(e) =>
                   setPayload({ ...payload, notes: e.target.value })
+                }
+              />
+            </div>
+          </div>
+        )}
+
+        {action === "resolved" && (
+          <div className="space-y-3 mb-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Resolution Status
+              </label>
+              <select
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-accent-500"
+                onChange={(e) =>
+                  setPayload({ ...payload, status: e.target.value })
+                }
+              >
+                <option value="">Select Resolution</option>
+                <option value="RESOLVED_SUCCESSFULLY">
+                  Resolved Successfully
+                </option>
+                <option value="PARTIALLY_RESOLVED">Partially Resolved</option>
+                <option value="REQUIRES_FOLLOW_UP">Requires Follow-up</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Resolution Notes
+              </label>
+              <textarea
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-accent-500"
+                rows={3}
+                placeholder="Describe how the incident was resolved..."
+                onChange={(e) =>
+                  setPayload({ ...payload, notes: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Actions Taken
+              </label>
+              <textarea
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-accent-500"
+                rows={2}
+                placeholder="List the actions taken to resolve this incident..."
+                onChange={(e) =>
+                  setPayload({ ...payload, actions: e.target.value })
                 }
               />
             </div>
@@ -377,7 +309,7 @@ export default function IncidentPane({
           className="btn-primary flex items-center"
         >
           <CheckCircle className="w-4 h-4 mr-1" />
-          Acknowledge (A)
+          Acknowledge
         </button>
       );
     }
@@ -390,7 +322,7 @@ export default function IncidentPane({
           className="btn-secondary flex items-center"
         >
           <Truck className="w-4 h-4 mr-1" />
-          Dispatch (D)
+          Dispatch
         </button>
       );
     }
@@ -398,23 +330,12 @@ export default function IncidentPane({
     if (incident.status !== "closed") {
       buttons.push(
         <button
-          key="publish"
-          onClick={() => handleAction("publish")}
-          className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center"
+          key="resolved"
+          onClick={() => handleAction("resolved")}
+          className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center"
         >
-          <Megaphone className="w-4 h-4 mr-1" />
-          Publish (P)
-        </button>
-      );
-
-      buttons.push(
-        <button
-          key="escalate"
-          onClick={() => handleAction("escalate")}
-          className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center"
-        >
-          <ArrowUp className="w-4 h-4 mr-1" />
-          Escalate
+          <CheckCircle className="w-4 h-4 mr-1" />
+          Resolved
         </button>
       );
 
@@ -623,12 +544,6 @@ export default function IncidentPane({
             </div>
           )}
 
-          {/* SOP Card */}
-          <SopCard
-            eventType={incident.eventType}
-            severity={incident.severity}
-          />
-
           {/* Export Controls */}
           <ExportControls incident={incident} />
         </div>
@@ -637,9 +552,6 @@ export default function IncidentPane({
         {canTakeAction && (
           <div className="p-4 border-t border-gray-200 bg-gray-50">
             <div className="space-y-2">
-              <div className="text-xs text-gray-600 mb-2">
-                Keyboard shortcuts: (A) Acknowledge • (D) Dispatch • (P) Publish
-              </div>
               <div className="grid grid-cols-2 gap-2">
                 {getActionButtons().map((button, index) => (
                   <div key={index} className="col-span-1">

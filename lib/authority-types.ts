@@ -86,6 +86,7 @@ export interface Filters {
   severity: string;
   confidenceRange: { min: number; max: number };
   verifiedOnly: boolean;
+  timeFilter?: string;
 }
 
 export interface NotificationData {

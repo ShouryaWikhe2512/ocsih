@@ -337,8 +337,6 @@ import IncidentPane from "@/components/authority/IncidentPane";
 import KpiRibbon from "@/components/authority/KpiRibbon";
 
 import { Incident, Filters, NotificationData } from "@/lib/authority-types";
-import { IncidentService } from "@/lib/incidents-service";
-import { incidents as mockIncidents } from "@/lib/authority-data";
 
 // Dynamic import for Map to avoid SSR issues
 const MapPanel = dynamic(() => import("@/components/authority/MapPanel"), {
@@ -363,6 +361,7 @@ export default function AuthorityDashboard() {
     severity: "all",
     confidenceRange: { min: 0, max: 1 },
     verifiedOnly: true,
+    timeFilter: "all",
   });
   const [newIncidentNotification, setNewIncidentNotification] = useState<{
     incident: Incident;
@@ -374,54 +373,76 @@ export default function AuthorityDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Load incidents from Firestore with real-time updates
+  // Load incidents from API
   useEffect(() => {
-    setIsLoading(true);
+    const fetchIncidents = async () => {
+      try {
+        setIsLoading(true);
+        console.log("🏛️ Authority Dashboard: Fetching verified reports...");
 
-    const unsubscribe = IncidentService.subscribeToIncidents(
-      (firestoreIncidents) => {
-        // Combine Firestore incidents with mock incidents
-        const allIncidents = [...firestoreIncidents, ...mockIncidents];
-        setIncidents(allIncidents);
-        setIsLoading(false);
+        const response = await fetch("/api/authority/incidents");
+        if (!response.ok) {
+          throw new Error("Failed to fetch incidents");
+        }
+
+        const data = await response.json();
+        console.log(
+          `🏛️ Authority Dashboard: Received ${data.length} verified reports`
+        );
+        setIncidents(data);
         setError(null);
-      },
-      {
-        limitCount: 100, // Limit to prevent performance issues
+      } catch (err) {
+        console.error("🏛️ Authority Dashboard: Error fetching incidents:", err);
+        setError(err as Error);
+        setIncidents([]);
+      } finally {
+        setIsLoading(false);
       }
-    );
+    };
 
-    return () => unsubscribe();
+    fetchIncidents();
+
+    // Set up polling for real-time updates (every 30 seconds)
+    const interval = setInterval(fetchIncidents, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  // Filter incidents based on current filters
+  // Filter incidents based on event type and time
   const filteredIncidents =
     incidents?.filter((incident) => {
       const matchesEventType =
         filters.eventType === "all" || incident.eventType === filters.eventType;
-      const matchesDistrict =
-        filters.district === "all" ||
-        incident.location.district === filters.district;
-      const matchesSeverity =
-        filters.severity === "all" || incident.severity === filters.severity;
-      const matchesConfidence =
-        incident.confidence >= filters.confidenceRange.min &&
-        incident.confidence <= filters.confidenceRange.max;
 
-      const incidentDate = new Date(incident.timestamp)
-        .toISOString()
-        .split("T")[0];
-      const matchesDateRange =
-        incidentDate >= filters.dateRange.start &&
-        incidentDate <= filters.dateRange.end;
+      // Time filtering
+      const incidentTime = new Date(incident.timestamp);
+      const now = new Date();
+      let matchesTime = true;
 
-      return (
-        matchesEventType &&
-        matchesDistrict &&
-        matchesSeverity &&
-        matchesConfidence &&
-        matchesDateRange
-      );
+      if (filters.timeFilter && filters.timeFilter !== "all") {
+        switch (filters.timeFilter) {
+          case "24h":
+            matchesTime =
+              now.getTime() - incidentTime.getTime() <= 24 * 60 * 60 * 1000;
+            break;
+          case "1w":
+            matchesTime =
+              now.getTime() - incidentTime.getTime() <= 7 * 24 * 60 * 60 * 1000;
+            break;
+          case "1m":
+            matchesTime =
+              now.getTime() - incidentTime.getTime() <=
+              30 * 24 * 60 * 60 * 1000;
+            break;
+          case "6m":
+            matchesTime =
+              now.getTime() - incidentTime.getTime() <=
+              6 * 30 * 24 * 60 * 60 * 1000;
+            break;
+        }
+      }
+
+      return matchesEventType && matchesTime;
     }) || [];
 
   // Server-Sent Events for real-time notifications
@@ -430,7 +451,10 @@ export default function AuthorityDashboard() {
 
     eventSource.onmessage = (event) => {
       const notification: NotificationData = JSON.parse(event.data);
-      console.log("Received notification:", notification);
+      console.log(
+        "🏛️ Authority Dashboard: Received notification:",
+        notification
+      );
 
       if (
         notification.type === "new_incident" ||
@@ -438,7 +462,10 @@ export default function AuthorityDashboard() {
       ) {
         // Show notification to user
         if (notification.type === "new_incident") {
-          console.log("New incident received:", notification.data.incident);
+          console.log(
+            "🏛️ Authority Dashboard: New verified incident received:",
+            notification.data.incident
+          );
           setNewIncidentNotification({
             incident: notification.data.incident,
             timestamp: notification.timestamp,
@@ -450,13 +477,13 @@ export default function AuthorityDashboard() {
           }, 5000);
         }
 
-        // Note: Real-time updates are handled by Firestore subscription
-        // No need to manually refresh data
+        // Refresh data when new verified reports are available
+        // The polling will handle the actual data refresh
       }
     };
 
     eventSource.onerror = (error) => {
-      console.error("SSE connection error:", error);
+      console.error("🏛️ Authority Dashboard: SSE connection error:", error);
     };
 
     return () => {
@@ -473,8 +500,10 @@ export default function AuthorityDashboard() {
         handleAction("acknowledge");
       } else if (e.key === "d" || e.key === "D") {
         handleAction("dispatch");
-      } else if (e.key === "p" || e.key === "P") {
-        handleAction("publish");
+      } else if (e.key === "r" || e.key === "R") {
+        handleAction("resolved");
+      } else if (e.key === "c" || e.key === "C") {
+        handleAction("close");
       }
     };
 
@@ -486,6 +515,10 @@ export default function AuthorityDashboard() {
     if (!selectedIncident) return;
 
     try {
+      console.log(
+        `🏛️ Authority Dashboard: Performing action ${action} on incident ${selectedIncident.id}`
+      );
+
       const response = await fetch(
         `/api/authority/incidents/${selectedIncident.id}/${action}`,
         {
@@ -498,10 +531,22 @@ export default function AuthorityDashboard() {
       if (response.ok) {
         const updatedIncident = await response.json();
         setSelectedIncident(updatedIncident.incident);
-        // Real-time updates are handled by Firestore subscription
+        console.log(
+          `🏛️ Authority Dashboard: Action ${action} completed successfully`
+        );
+
+        // Refresh the incidents list to get updated data
+        // The polling will handle this automatically
+      } else {
+        console.error(
+          `🏛️ Authority Dashboard: Failed to perform action ${action}`
+        );
       }
     } catch (error) {
-      console.error(`Error performing ${action}:`, error);
+      console.error(
+        `🏛️ Authority Dashboard: Error performing ${action}:`,
+        error
+      );
     }
   };
 
@@ -619,10 +664,11 @@ export default function AuthorityDashboard() {
                   </span>
                   <button
                     onClick={() => {
-                      // Real-time updates are handled by Firestore subscription
                       console.log(
-                        "Refresh requested - data updates automatically"
+                        "🏛️ Authority Dashboard: Manual refresh requested"
                       );
+                      // Trigger a manual refresh by refetching data
+                      window.location.reload();
                     }}
                     className="text-sm px-3 py-1 rounded-md border-2 border-blue-200 text-blue-700 hover:bg-blue-50 transition-all duration-200 font-medium"
                   >
@@ -685,20 +731,6 @@ export default function AuthorityDashboard() {
             <div className="absolute -top-12 -left-12 bg-gray-900 text-white px-3 py-1 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
               Select Latest Incident
             </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Keyboard Shortcuts Indicator */}
-      {selectedIncident && selectedIncident.status !== "closed" && (
-        <motion.div
-          className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-30"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <div className="bg-gray-800 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
-            Press A to acknowledge • D to dispatch • P to publish
           </div>
         </motion.div>
       )}

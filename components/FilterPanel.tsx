@@ -125,14 +125,13 @@ export default function FilterPanel({
             onChange={(e) => handleFilterChange("eventType", e.target.value)}
           >
             <option value="all">All Crime Types</option>
-            <option value="theft">Theft</option>
-            <option value="assault">Assault</option>
-            <option value="burglary">Burglary</option>
-            <option value="fraud">Fraud</option>
-            <option value="vandalism">Vandalism</option>
-            <option value="robbery">Robbery</option>
-            <option value="domestic_violence">Domestic Violence</option>
-            <option value="cyber_crime">Cyber Crime</option>
+            <option value="sexual_violence">SEXUAL VIOLENCE</option>
+            <option value="domestic_violence">DOMESTIC VIOLENCE</option>
+            <option value="street_crimes">STREET CRIMES</option>
+            <option value="mob_violence_lynching">MOB VIOLENCE LYNCHING</option>
+            <option value="road_rage_incidents">ROAD RAGE INCIDENTS</option>
+            <option value="cybercrimes">CYBERCRIMES</option>
+            <option value="drug">DRUG</option>
           </select>
         </div>
 

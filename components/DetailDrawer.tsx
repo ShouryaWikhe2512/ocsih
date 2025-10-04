@@ -1,7 +1,15 @@
 import { useEffect } from "react";
 import { Report } from "@/lib/types";
 import { AnalyticsService } from "@/lib/analytics";
-import { X, Check, AlertTriangle, Camera, MapPin, Clock } from "lucide-react";
+import {
+  X,
+  Check,
+  AlertTriangle,
+  Camera,
+  MapPin,
+  Clock,
+  ArrowUpRight,
+} from "lucide-react";
 
 interface DetailDrawerProps {
   report: Report;
@@ -261,6 +269,19 @@ export default function DetailDrawer({
             Trust: {Math.round(report.trust * 100)}%
           </span>
         </div>
+
+        {/* Escalation Info */}
+        {report.escalatedTo && (
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <h4 className="font-medium text-blue-900 mb-1">Escalated To</h4>
+            <p className="text-blue-800 font-semibold">{report.escalatedTo}</p>
+            {report.escalationNotes && (
+              <p className="text-blue-600 text-sm mt-1">
+                Notes: {report.escalationNotes}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Event Type */}
         <div className="mb-4">

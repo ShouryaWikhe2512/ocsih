@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/router";
 import { Report, Filters, KPIData } from "@/lib/types";
-import { ReportService } from "@/lib/firestore";
+import { ReportService } from "@/lib/prisma-service";
 import { AnalyticsService } from "@/lib/analytics";
 import MapPanel from "@/components/MapPanel";
 import FilterPanel from "@/components/FilterPanel";
@@ -12,7 +12,7 @@ import QueueList from "@/components/QueueList";
 import DetailDrawer from "@/components/DetailDrawer";
 import KpiCards from "@/components/KpiCards";
 import MediaModal from "@/components/MediaModal";
-import TimeSeriesStackedArea from "@/components/TimeSeriesStackedArea";
+import VerifiedReports from "@/components/VerifiedReports";
 
 export default function AnalystDashboard() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -23,6 +23,7 @@ export default function AnalystDashboard() {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"queue" | "verified">("queue");
   const [filters, setFilters] = useState<Filters>({
     eventType: "all",
     minTrust: 0,
@@ -49,21 +50,33 @@ export default function AnalystDashboard() {
     }
   }, [isLoaded, isSignedIn, user]);
 
-  // Load reports from Firestore
+  // Load reports from Prisma database
   useEffect(() => {
     if (!isSignedIn) return;
 
-    const unsubscribe = ReportService.subscribeToReports(
-      (reportsData) => {
-        setReports(reportsData);
+    const loadReports = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/reports");
+        if (response.ok) {
+          const reportsData = await response.json();
+          setReports(reportsData);
+        } else {
+          console.error("Failed to fetch reports");
+        }
+      } catch (error) {
+        console.error("Error loading reports:", error);
+      } finally {
         setLoading(false);
-      },
-      {
-        limitCount: 100, // Limit to prevent performance issues
       }
-    );
+    };
 
-    return () => unsubscribe();
+    loadReports();
+
+    // Set up polling for real-time updates (every 30 seconds)
+    const interval = setInterval(loadReports, 30000);
+
+    return () => clearInterval(interval);
   }, [isSignedIn]);
 
   // Filter reports based on current filters
@@ -88,7 +101,7 @@ export default function AnalystDashboard() {
     totalReports: reports.length,
     verifiedReports: reports.filter((r) => r.status === "verified").length,
     pendingReports: reports.filter(
-      (r) => r.status === "new" || r.status === "in_review"
+      (r) => r.status === "new" || r.status === "pending"
     ).length,
     rejectedReports: reports.filter((r) => r.status === "rejected").length,
   };
@@ -135,7 +148,7 @@ export default function AnalystDashboard() {
 
       // Show success message
       if (action === "verify") {
-        console.log("Report verified and incident created:", result.incident);
+        console.log("Report verified successfully:", result.report);
       }
     } catch (error) {
       console.error(`Error ${action}ing report:`, error);
@@ -147,8 +160,7 @@ export default function AnalystDashboard() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
         selectedReport &&
-        (selectedReport.status === "new" ||
-          selectedReport.status === "in_review")
+        (selectedReport.status === "new" || selectedReport.status === "pending")
       ) {
         if (e.key === "v" || e.key === "V") {
           handleReportAction(selectedReport.id, "verify");
@@ -277,7 +289,7 @@ export default function AnalystDashboard() {
             className="bg-white rounded-2xl shadow-lg border-2 border-blue-100 overflow-hidden flex flex-col"
             style={{ height: "70vh" }}
           >
-            {/* Top toolbar in right column: Back button + title */}
+            {/* Top toolbar in right column: Back button + tabs */}
             <div className="flex items-center justify-between px-4 py-3 border-b-2 border-blue-100 bg-blue-50">
               <div className="flex items-center gap-3">
                 {/* Show back button only when viewing details */}
@@ -289,14 +301,33 @@ export default function AnalystDashboard() {
                     ← Back
                   </button>
                 ) : (
-                  // keep a small placeholder to preserve layout
-                  <div className="w-12" />
+                  // Tab navigation when not viewing details
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => setActiveTab("queue")}
+                      className={`text-sm px-3 py-1 rounded-md font-medium transition-all duration-200 ${
+                        activeTab === "queue"
+                          ? "bg-blue-600 text-white"
+                          : "border-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                      }`}
+                    >
+                      Investigation Queue
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("verified")}
+                      className={`text-sm px-3 py-1 rounded-md font-medium transition-all duration-200 ${
+                        activeTab === "verified"
+                          ? "bg-green-600 text-white"
+                          : "border-2 border-green-200 text-green-700 hover:bg-green-50"
+                      }`}
+                    >
+                      Verified Reports
+                    </button>
+                  </div>
                 )}
 
                 <h3 className="text-sm font-bold text-blue-900">
-                  {selectedReport
-                    ? "Crime Report Details"
-                    : "Investigation Queue"}
+                  {selectedReport ? "Crime Report Details" : ""}
                 </h3>
               </div>
 
@@ -321,13 +352,20 @@ export default function AnalystDashboard() {
                 className="p-4 overflow-y-auto scroll-smooth"
                 // keep same visual height as map by flex layout parent; inner scrollable
               >
-                <QueueList
-                  reports={filteredReports.filter(
-                    (r) => r.status === "new" || r.status === "in_review"
-                  )}
-                  selectedReport={selectedReport}
-                  onSelectReport={setSelectedReport}
-                />
+                {activeTab === "queue" ? (
+                  <QueueList
+                    reports={filteredReports.filter(
+                      (r) => r.status === "new" || r.status === "pending"
+                    )}
+                    selectedReport={selectedReport}
+                    onSelectReport={setSelectedReport}
+                  />
+                ) : (
+                  <VerifiedReports
+                    reports={filteredReports}
+                    onReportSelect={setSelectedReport}
+                  />
+                )}
               </div>
             ) : (
               <div className="flex-1 overflow-hidden p-0">
@@ -340,33 +378,6 @@ export default function AnalystDashboard() {
               </div>
             )}
           </div>
-        </div>
-
-        {/* Bottom row — full width Crime Trends chart */}
-        <div className="bg-white rounded-2xl shadow-lg border-2 border-blue-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-bold text-blue-900">
-                Crime Trends Analysis
-              </h2>
-              <p className="text-sm text-gray-600 font-medium">
-                Crime patterns by type with investigation progress overlay
-              </p>
-            </div>
-
-            <div className="flex gap-2">
-              {["24h", "7d", "30d"].map((range) => (
-                <button
-                  key={range}
-                  className="px-3 py-1 text-sm rounded-md border-2 border-blue-200 hover:bg-blue-50 transition-all duration-200 font-medium text-blue-700"
-                >
-                  {range}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <TimeSeriesStackedArea bucket="hour" periodHours={168} height={300} />
         </div>
       </div>
     </div>

@@ -14,165 +14,83 @@ export default function FiltersList({
     onFiltersChange({ ...filters, [key]: value });
   };
 
-  const districts = [
+  // Crime categories from the database
+  const eventTypes = [
     "all",
-    "Mumbai",
-    "Ernakulam",
-    "Chennai",
-    "Kolkata",
-    "Visakhapatnam",
+    "sexual_violence",
+    "domestic_violence",
+    "street_crimes",
+    "mob_violence_lynching",
+    "road_rage_incidents",
+    "cybercrimes",
+    "drug",
   ];
-  const eventTypes = ["all", "high_wave", "flood", "unusual_tide", "cyclone"];
-  const severityLevels = ["all", "low", "moderate", "high", "extreme"];
+
+  // Time filter options
+  const timeFilters = [
+    { value: "all", label: "All Time" },
+    { value: "24h", label: "Last 24 Hours" },
+    { value: "1w", label: "Last 1 Week" },
+    { value: "1m", label: "Last 1 Month" },
+    { value: "6m", label: "Last 6 Months" },
+  ];
 
   return (
     <motion.div
-      className="p-4 border-b border-gray-200"
+      className="p-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 0.2 }}
     >
-      <h2 className="font-semibold text-lg mb-4 text-gray-900">Filters</h2>
+      <h2 className="font-semibold text-lg mb-4 text-gray-900">
+        Crime Filters
+      </h2>
 
       <div className="space-y-4">
-        {/* Date Range */}
+        {/* Crime Category Filter */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Date Range
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              type="date"
-              className="text-xs p-2 border border-gray-300 rounded focus:ring-2 focus:ring-accent-500"
-              value={filters.dateRange.start}
-              onChange={(e) =>
-                handleFilterChange("dateRange", {
-                  ...filters.dateRange,
-                  start: e.target.value,
-                })
-              }
-            />
-            <input
-              type="date"
-              className="text-xs p-2 border border-gray-300 rounded focus:ring-2 focus:ring-accent-500"
-              value={filters.dateRange.end}
-              onChange={(e) =>
-                handleFilterChange("dateRange", {
-                  ...filters.dateRange,
-                  end: e.target.value,
-                })
-              }
-            />
-          </div>
-        </div>
-
-        {/* Event Type */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Event Type
+            Crime Category
           </label>
           <select
-            className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-accent-500"
+            className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             value={filters.eventType}
             onChange={(e) => handleFilterChange("eventType", e.target.value)}
           >
             {eventTypes.map((type) => (
               <option key={type} value={type}>
                 {type === "all"
-                  ? "All Events"
+                  ? "All Crime Categories"
                   : type.replace("_", " ").toUpperCase()}
               </option>
             ))}
           </select>
         </div>
 
-        {/* District */}
+        {/* Time Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            District
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Time Period
           </label>
           <select
-            className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-accent-500"
-            value={filters.district}
-            onChange={(e) => handleFilterChange("district", e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            value={filters.timeFilter || "all"}
+            onChange={(e) => handleFilterChange("timeFilter", e.target.value)}
           >
-            {districts.map((district) => (
-              <option key={district} value={district}>
-                {district === "all" ? "All Districts" : district}
+            {timeFilters.map((filter) => (
+              <option key={filter.value} value={filter.value}>
+                {filter.label}
               </option>
             ))}
           </select>
         </div>
 
-        {/* Severity */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Severity
-          </label>
-          <select
-            className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-accent-500"
-            value={filters.severity}
-            onChange={(e) => handleFilterChange("severity", e.target.value)}
-          >
-            {severityLevels.map((severity) => (
-              <option key={severity} value={severity}>
-                {severity === "all" ? "All Severities" : severity.toUpperCase()}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Confidence Range */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Confidence Range: {Math.round(filters.confidenceRange.min * 100)}% -{" "}
-            {Math.round(filters.confidenceRange.max * 100)}%
-          </label>
-          <div className="space-y-2">
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              className="w-full"
-              value={filters.confidenceRange.min}
-              onChange={(e) =>
-                handleFilterChange("confidenceRange", {
-                  ...filters.confidenceRange,
-                  min: parseFloat(e.target.value),
-                })
-              }
-            />
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              className="w-full"
-              value={filters.confidenceRange.max}
-              onChange={(e) =>
-                handleFilterChange("confidenceRange", {
-                  ...filters.confidenceRange,
-                  max: parseFloat(e.target.value),
-                })
-              }
-            />
-          </div>
-        </div>
-
-        {/* Verified Only Toggle */}
-        <div>
-          <label className="flex items-center text-sm">
-            <input
-              type="checkbox"
-              className="mr-2 rounded focus:ring-accent-500"
-              checked={filters.verifiedOnly}
-              onChange={(e) =>
-                handleFilterChange("verifiedOnly", e.target.checked)
-              }
-            />
-            Verified Incidents Only
-          </label>
+        {/* Info Text */}
+        <div className="mt-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="text-xs text-blue-800">
+            <strong>Note:</strong> Only verified reports from analysts are
+            displayed here.
+          </p>
         </div>
       </div>
     </motion.div>
